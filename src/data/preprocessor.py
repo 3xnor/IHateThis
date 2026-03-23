@@ -101,7 +101,7 @@ class Preprocessor:
     @staticmethod
     def _remove_html(text: str) -> str:
         if "<" in text and ">" in text:
-            soup = BeautifulSoup(text, "lxml")
+            soup = BeautifulSoup(text, "html.parser")
             return soup.get_text(separator=" ")
         return text
 
