@@ -25,6 +25,10 @@ pydantic>=2.4.0
 # 설정
 pyyaml>=6.0.1
 
+# 하이퍼파라미터 튜닝
+optuna>=3.4.0
+scipy>=1.11.0
+
 # 개발 / 테스트
 pytest>=7.4.0
 pytest-cov>=4.1.0

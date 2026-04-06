@@ -59,7 +59,9 @@ def load_dataset(
         preprocessor.preprocess(row["subject"], row["body"])
         for _, row in df.iterrows()
     ]
-    labels = df["label"].tolist()
+    _label_map = {"spam": 1, "ham": 0}
+    raw_labels = df["label"].tolist()
+    labels = [_label_map[l] if isinstance(l, str) else int(l) for l in raw_labels]
 
     # train / (val + test) 분리
     test_ratio = 1.0 - train_ratio
