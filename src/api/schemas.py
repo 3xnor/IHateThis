@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 class PredictRequest(BaseModel):
     subject: str = Field(..., description="이메일 제목")
     body: str = Field(..., description="이메일 본문")
-    model: Literal["ml", "bert"] = Field("bert", description="사용할 모델 (ml | bert)")
+    model: Literal["ml", "bert", "ensemble"] = Field("bert", description="사용할 모델 (ml | bert | ensemble)")
 
 
 class PredictResponse(BaseModel):

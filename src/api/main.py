@@ -69,6 +69,19 @@ async def lifespan(app: FastAPI):
     else:
         print(f"[API] BERT 모델 없음 (학습 후 사용 가능): {bert_path}")
 
+    # 앙상블 모델 (ML + BERT 둘 다 로드된 경우에만)
+    if "ml" in _models and "bert" in _models:
+        from src.models.ensemble_model import EnsembleClassifier
+        ensemble_cfg = _cfg.get("ensemble", {})
+        _models["ensemble"] = EnsembleClassifier(
+            ml_model=_models["ml"],
+            bert_model=_models["bert"],
+            ml_weight=ensemble_cfg.get("ml_weight", 0.3),
+            bert_weight=ensemble_cfg.get("bert_weight", 0.7),
+            spam_threshold=ensemble_cfg.get("spam_threshold", 0.7),
+        )
+        print("[API] 앙상블 모델 준비 완료 (ML×0.3 + BERT×0.7)")
+
     yield
 
 

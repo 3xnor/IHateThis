@@ -34,6 +34,11 @@ bert_model:
   dropout: 0.3
   spam_threshold: 0.7
 
+ensemble:
+  ml_weight: 0.3
+  bert_weight: 0.7
+  spam_threshold: 0.7
+
 artifacts:
   dir: "artifacts"
   ml_model: "artifacts/ml_model.joblib"

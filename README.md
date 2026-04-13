@@ -73,6 +73,47 @@ IHateThis/
 
 ---
 
+## 정확도 향상 옵션
+
+### KoNLPy 형태소 분석 활성화 (권장)
+
+기본값은 단순 공백 분리입니다. KoNLPy를 활성화하면 한국어 형태소 분석으로 전처리 품질이 향상됩니다.
+
+**1. Java 설치** (JDK 11 이상)
+```
+https://www.oracle.com/java/technologies/downloads/
+```
+
+**2. KoNLPy 설치**
+```bash
+pip install konlpy
+```
+
+**3. config.yaml 수정**
+```yaml
+preprocessing:
+  use_konlpy: true        # false → true 로 변경
+  konlpy_analyzer: "Okt"  # Okt | Kkma | Komoran
+```
+
+**4. 재학습**
+```bash
+python -m src.train --model ml bert
+```
+
+---
+
+### 앙상블 모델 사용
+
+ML + BERT 두 모델을 모두 학습한 후 API 요청 시 `model: "ensemble"` 지정:
+```json
+{ "subject": "제목", "body": "본문", "model": "ensemble" }
+```
+
+가중치는 `config.yaml`의 `ensemble` 섹션에서 조정 가능합니다.
+
+---
+
 ## 빠른 시작
 
 ```bash
