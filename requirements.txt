@@ -11,11 +11,14 @@ lxml>=4.9.0
 # 한국어 NLP (선택: Java 필요)
 # konlpy>=0.6.0
 
-# BERT / 딥러닝
+# BERT / 딥러닝 + 번역
 torch>=2.0.0
 transformers>=4.35.0
 datasets>=2.14.0
 accelerate>=0.24.0
+sentencepiece>=0.1.99
+sacremoses>=0.0.53
+tqdm>=4.66.0
 
 # API 서버
 fastapi>=0.104.0

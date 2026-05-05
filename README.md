@@ -16,6 +16,30 @@
 
 ---
 
+## 변경 이력
+
+### 2026-05-01
+
+**오버피팅 해소 및 데이터셋 확충**
+
+- `data/claude_generated_ko.csv` 추가 — 한국어 이메일 3,000개 신규 생성
+  - 스팸 15종 × 100개 = 1,500개 (피싱, 불법대출, 당첨사기, 보이스피싱, 성인광고, 해킹협박, 도박광고 등)
+  - 햄 15종 × 100개 = 1,500개 (업무연락, 회의일정, 쇼핑영수증, 배송알림, 은행거래, 가족친구 등)
+  - 생성 방식: 로컬 템플릿 기반 (API 비용 없음, `_gen_ko_data.py`)
+- `src/data/loader.py` — `load_datasets()` 함수 추가
+  - 여러 CSV 경로를 받아 합친 뒤 stratified split 수행
+- `src/models/bert_model.py` — 학습 히스토리 저장 추가
+  - `self.history["train_loss"]`, `self.history["val_f1"]` 에폭별 기록
+- `notebooks/03_ml_model.ipynb` 업데이트
+  - 데이터 로드: `korean_spam_dataset.csv` + `claude_generated_ko.csv` 병합 (8,000개)
+  - **오버피팅 진단 섹션 추가**: Train vs Test 정확도·F1 비교, 갭 경고
+  - **K-Fold 교차검증(5겹) 섹션 추가**: 전체 데이터로 분산 확인
+- `notebooks/04_bert_model.ipynb` 업데이트
+  - 데이터 로드: 동일하게 병합 데이터 사용
+  - **학습 곡선 시각화 섹션 추가**: Train Loss / Val F1 추이 그래프, 오버피팅 자동 탐지
+
+---
+
 ## 주요 기능
 
 - 이메일 텍스트(제목 + 본문)를 입력받아 스팸 여부 판단
@@ -43,7 +67,8 @@
 ```
 IHateThis/
 ├── data/
-│   └── korean_spam_dataset.csv   # 5,000개 한국어 이메일
+│   ├── korean_spam_dataset.csv   # 5,000개 한국어 이메일 (수동 생성)
+│   └── claude_generated_ko.csv  # 3,000개 한국어 이메일 (템플릿 생성, 2026-05-01 추가)
 ├── notebooks/                    # 단계별 실습 노트북
 │   ├── 01_data_exploration.ipynb
 │   ├── 02_preprocessing.ipynb
@@ -64,7 +89,8 @@ IHateThis/
 │   ├── train.py                  # 학습 실행 스크립트
 │   └── evaluate.py               # 평가 스크립트
 ├── artifacts/                    # 학습된 모델 저장 위치
-├── generate_dataset.py           # 데이터셋 생성 스크립트
+├── generate_dataset.py           # 기존 데이터셋 생성 스크립트
+├── _gen_ko_data.py               # 템플릿 기반 한국어 이메일 생성 (2026-05-01 추가)
 ├── config.yaml                   # 모델 및 학습 설정
 ├── requirements.txt              # 의존성 목록
 ├── DESIGN.md
@@ -139,13 +165,13 @@ uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload
 
 ## 데이터셋
 
+### korean_spam_dataset.csv (기존)
+
 `generate_dataset.py`로 생성한 한국어 합성 데이터셋입니다.
 
 ```bash
 python generate_dataset.py   # data/korean_spam_dataset.csv 재생성
 ```
-
-### 구성
 
 | 항목 | 내용 |
 |------|------|
@@ -154,6 +180,33 @@ python generate_dataset.py   # data/korean_spam_dataset.csv 재생성
 | 정상 | 3,000개 (60%) |
 | 컬럼 | id, subject, body, label, category |
 | 인코딩 | UTF-8 (BOM) |
+
+### claude_generated_ko.csv (2026-05-01 추가)
+
+템플릿 기반으로 생성한 다양성 확보용 데이터셋입니다. 기존 수동 데이터만 학습 시 오버피팅 발생 문제를 해결하기 위해 추가되었습니다.
+
+```bash
+python _gen_ko_data.py   # data/claude_generated_ko.csv 재생성
+```
+
+| 항목 | 내용 |
+|------|------|
+| 전체 | 3,000개 |
+| 스팸 | 1,500개 (50%) |
+| 정상 | 1,500개 (50%) |
+| 컬럼 | id, subject, body, label, category, source |
+| 인코딩 | UTF-8 (BOM) |
+
+### 학습 시 합산 데이터
+
+노트북 03·04에서 두 CSV를 자동으로 병합하여 학습합니다.
+
+| 항목 | 내용 |
+|------|------|
+| 전체 | 8,000개 |
+| Train | 6,400개 (80%) |
+| Val | 800개 (10%) |
+| Test | 800개 (10%) |
 
 ### 카테고리
 

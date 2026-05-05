@@ -71,6 +71,7 @@ class BERTSpamClassifier(BaseSpamClassifier):
         warmup_ratio: float = 0.1,
         weight_decay: float = 0.01,
         spam_threshold: float = 0.7,
+        early_stopping_patience: int = 3,
     ) -> None:
         self.base_model = base_model
         self.max_length = max_length
@@ -80,6 +81,8 @@ class BERTSpamClassifier(BaseSpamClassifier):
         self.warmup_ratio = warmup_ratio
         self.weight_decay = weight_decay
         self.SPAM_THRESHOLD = spam_threshold
+        self.early_stopping_patience = early_stopping_patience
+        self.history: dict[str, list] = {"train_loss": [], "val_f1": []}
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(f"[BERT] 디바이스: {self.device}")
@@ -119,17 +122,27 @@ class BERTSpamClassifier(BaseSpamClassifier):
 
         best_val_f1 = 0.0
         best_state = None
+        no_improve = 0
+        self.history = {"train_loss": [], "val_f1": []}
 
         for epoch in range(1, self.epochs + 1):
             train_loss = self._train_epoch(train_loader, optimizer, scheduler)
+            self.history["train_loss"].append(train_loss)
             print(f"[BERT] Epoch {epoch}/{self.epochs} | train_loss={train_loss:.4f}", end="")
 
             if val_loader:
                 val_f1 = self._evaluate_epoch(val_loader)
+                self.history["val_f1"].append(val_f1)
                 print(f" | val_f1={val_f1:.4f}", end="")
                 if val_f1 > best_val_f1:
                     best_val_f1 = val_f1
                     best_state = {k: v.cpu().clone() for k, v in self.model.state_dict().items()}
+                    no_improve = 0
+                else:
+                    no_improve += 1
+                    if no_improve >= self.early_stopping_patience:
+                        print(f"\n[BERT] Early stopping (patience={self.early_stopping_patience}, epoch={epoch})")
+                        break
             print()
 
         # 최적 가중치 복원
