@@ -13,7 +13,10 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 import yaml
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
+
+load_dotenv()
 
 from src.api.schemas import (
     BatchPredictRequest,
@@ -91,6 +94,9 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
+from src.api.gmail_router import router as gmail_router  # noqa: E402
+app.include_router(gmail_router)
 
 
 # ------------------------------------------------------------------
