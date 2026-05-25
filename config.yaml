@@ -1,5 +1,5 @@
 data:
-  path: "data/korean_spam_dataset.csv"
+  path: "data/new_ko_data.csv"
   train_ratio: 0.8
   val_ratio: 0.1
   test_ratio: 0.1

@@ -86,8 +86,8 @@ def _split_df(
     # 전처리
     print("[전처리] 텍스트 정제 중...")
     texts = [
-        preprocessor.preprocess(row["subject"], row["body"])
-        for _, row in df.iterrows()
+        preprocessor.preprocess(subject, body)
+        for subject, body in zip(df["subject"], df["body"])
     ]
     _label_map = {"spam": 1, "ham": 0}
     labels = [_label_map[str(l)] for l in df["label"]]
