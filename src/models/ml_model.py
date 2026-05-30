@@ -70,13 +70,31 @@ class MLSpamClassifier(BaseSpamClassifier):
         y_train: list[int],
         X_val: list[str] | None = None,
         y_val: list[int] | None = None,
+        n_epochs: int = 5,
     ) -> None:
+        from sklearn.metrics import classification_report, log_loss, f1_score
+        import numpy as np
+
         print("[ML] 학습 시작...")
+        self.history: dict[str, list[float]] = {"train_loss": [], "val_f1": []}
+
+        n = len(X_train)
+        for i in range(1, n_epochs + 1):
+            size = int(n * i / n_epochs)
+            self._pipeline.fit(X_train[:size], y_train[:size])
+            train_proba = self._pipeline.predict_proba(X_train[:size])
+            self.history["train_loss"].append(log_loss(y_train[:size], train_proba))
+            if X_val is not None and y_val is not None:
+                val_pred = self._pipeline.predict(X_val)
+                self.history["val_f1"].append(f1_score(y_val, val_pred))
+            print(f"[ML] Epoch {i}/{n_epochs} | train_loss={self.history['train_loss'][-1]:.4f}"
+                  + (f" | val_f1={self.history['val_f1'][-1]:.4f}" if self.history["val_f1"] else ""))
+
+        # 전체 데이터로 최종 학습
         self._pipeline.fit(X_train, y_train)
         print("[ML] 학습 완료")
 
         if X_val is not None and y_val is not None:
-            from sklearn.metrics import classification_report
             y_pred = self._pipeline.predict(X_val)
             print("[ML] Validation 결과:")
             print(classification_report(y_val, y_pred, target_names=["ham", "spam"]))
